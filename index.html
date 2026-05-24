@@ -1,0 +1,1143 @@
+<!DOCTYPE html>
+<html lang="pt" data-theme="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>FitWar 💪</title>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    [data-theme="dark"] {
+      --bg:#07070e; --bg2:#0d0d1c; --card:rgba(255,255,255,0.04);
+      --border:rgba(255,255,255,0.09); --green:#00ff87; --red:#ff3864;
+      --yellow:#ffc107; --text:#f0f0f0; --muted:rgba(240,240,240,0.42);
+      --input-bg:rgba(255,255,255,0.06); --nav-bg:rgba(7,7,14,0.96);
+    }
+    [data-theme="light"] {
+      --bg:#f4f4f8; --bg2:#ffffff; --card:rgba(0,0,0,0.04);
+      --border:rgba(0,0,0,0.1); --green:#00b860; --red:#e02040;
+      --yellow:#e09800; --text:#111122; --muted:rgba(17,17,34,0.45);
+      --input-bg:rgba(0,0,0,0.05); --nav-bg:rgba(244,244,248,0.96);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+    html,body { background:var(--bg); color:var(--text); font-family:'DM Sans',system-ui,sans-serif; min-height:100vh; overflow-x:hidden; transition:background 0.2s,color 0.2s; }
+    [data-theme="dark"] body::before { content:''; position:fixed; inset:0; pointer-events:none; z-index:0; background-image:linear-gradient(rgba(0,255,135,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,135,0.025) 1px,transparent 1px); background-size:44px 44px; }
+    #root { position:relative; z-index:1; }
+    .screen { min-height:100vh; padding:20px 16px 90px; max-width:480px; margin:0 auto; }
+    .logo { font-family:'Bebas Neue',sans-serif; font-size:3.2rem; letter-spacing:3px; color:var(--green); line-height:1; }
+    .logo span { color:var(--text); }
+    .label-xs { font-size:0.72rem; text-transform:uppercase; letter-spacing:1.2px; font-weight:700; color:var(--muted); }
+    .muted { color:var(--muted); }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; margin-bottom:12px; }
+    .field { margin-bottom:14px; }
+    label { display:block; font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:1.2px; margin-bottom:6px; }
+    input[type=text],input[type=password],input[type=number],input[type=url],input[type=date],select,textarea {
+      width:100%; background:var(--input-bg); border:1px solid var(--border);
+      border-radius:9px; padding:12px 14px; color:var(--text); font-family:'DM Sans',system-ui,sans-serif;
+      font-size:1rem; outline:none; transition:border-color 0.2s;
+    }
+    textarea { resize:vertical; min-height:72px; }
+    input:focus,select:focus,textarea:focus { border-color:var(--green); box-shadow:0 0 0 3px rgba(0,255,135,0.1); }
+    input[type=number]::-webkit-outer-spin-button,input[type=number]::-webkit-inner-spin-button { -webkit-appearance:none; }
+    select option { background:var(--bg2); }
+    .btn { display:block; width:100%; padding:14px; border-radius:10px; border:none; font-family:'Bebas Neue',sans-serif; font-size:1.25rem; letter-spacing:1.5px; cursor:pointer; transition:all 0.18s; }
+    .btn-primary { background:var(--green); color:#07070e; }
+    .btn-primary:hover:not(:disabled) { opacity:0.88; transform:translateY(-1px); }
+    .btn-primary:disabled { opacity:0.35; cursor:not-allowed; }
+    .btn-ghost { background:transparent; color:var(--text); border:1px solid var(--border); }
+    .btn-ghost:hover { border-color:var(--green); color:var(--green); }
+    .btn-sm-danger { background:rgba(255,56,100,0.12); color:var(--red); border:1px solid rgba(255,56,100,0.25); border-radius:8px; padding:7px 12px; font-family:'DM Sans',sans-serif; font-size:0.82rem; font-weight:700; cursor:pointer; }
+    .btn + .btn { margin-top:8px; }
+    .toggle-row { display:flex; gap:6px; margin-bottom:14px; }
+    .toggle-btn { flex:1; padding:9px 6px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:0.82rem; font-weight:700; font-family:'DM Sans',sans-serif; transition:all 0.15s; text-align:center; }
+    .toggle-btn.active { background:rgba(0,255,135,0.1); border-color:var(--green); color:var(--green); }
+    .bottom-nav { position:fixed; bottom:0; left:0; right:0; background:var(--nav-bg); backdrop-filter:blur(24px); border-top:1px solid var(--border); display:flex; justify-content:space-around; padding:8px 0 max(14px,env(safe-area-inset-bottom)); z-index:100; }
+    .nav-btn { display:flex; flex-direction:column; align-items:center; gap:2px; background:none; border:none; color:var(--muted); cursor:pointer; padding:4px 10px; font-family:'DM Sans',sans-serif; font-size:0.6rem; transition:color 0.18s; position:relative; }
+    .nav-btn svg { width:20px; height:20px; stroke-width:1.8; }
+    .nav-btn.active { color:var(--green); }
+    .nav-btn .dot { position:absolute; top:2px; right:6px; width:7px; height:7px; background:var(--red); border-radius:50%; border:2px solid var(--bg); }
+    .rank-row { display:flex; flex-direction:column; gap:8px; padding:12px 14px; border-radius:11px; margin-bottom:8px; border:1px solid var(--border); background:var(--card); transition:border-color 0.15s; }
+    .rank-row.winner { border-color:rgba(0,255,135,0.35); background:rgba(0,255,135,0.04); }
+    .rank-row.loser { border-color:rgba(255,56,100,0.35); background:rgba(255,56,100,0.05); }
+    .rank-inner { display:flex; align-items:center; gap:10px; }
+    .rank-num { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; min-width:28px; text-align:center; }
+    .rank-name { flex:1; font-weight:700; font-size:0.95rem; }
+    .rank-score { font-family:'Bebas Neue',sans-serif; font-size:1.4rem; color:var(--green); }
+    .rank-row.loser .rank-score { color:var(--red); }
+    .rank-stats { display:flex; gap:10px; padding-left:38px; flex-wrap:wrap; }
+    .stat-chip { font-size:0.72rem; color:var(--muted); }
+    .badge { font-size:0.62rem; font-weight:700; padding:2px 5px; border-radius:4px; margin-left:3px; }
+    .badge-red { background:rgba(255,56,100,0.15); color:var(--red); }
+    .badge-you { color:var(--muted); }
+    .version-badge { display:inline-block; font-size:0.65rem; font-weight:700; background:rgba(0,255,135,0.1); color:var(--green); border:1px solid rgba(0,255,135,0.2); padding:2px 8px; border-radius:20px; cursor:pointer; }
+    .big-score { font-family:'Bebas Neue',sans-serif; font-size:3.6rem; line-height:1; color:var(--green); }
+    .error { color:var(--red); font-size:0.85rem; margin:8px 0; }
+    .warn-box { padding:11px 14px; background:rgba(255,193,7,0.08); border:1px solid rgba(255,193,7,0.25); border-radius:10px; font-size:0.84rem; color:var(--yellow); margin-bottom:12px; }
+    .success-screen { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; text-align:center; }
+    .score-preview { display:flex; align-items:center; justify-content:space-between; padding:12px 16px; background:rgba(0,255,135,0.05); border:1px solid rgba(0,255,135,0.2); border-radius:10px; margin-bottom:12px; }
+    .photo-zone { border:2px dashed var(--border); border-radius:12px; padding:24px 20px; text-align:center; cursor:pointer; }
+    .photo-zone.filled { border-color:var(--green); }
+    .photo-zone img { width:100%; max-height:180px; object-fit:cover; border-radius:8px; }
+    .spinner { display:inline-block; width:20px; height:20px; border:2px solid rgba(255,255,255,0.2); border-top-color:var(--green); border-radius:50%; animation:spin 0.7s linear infinite; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    .avatar-circle { border-radius:50%; display:flex; align-items:center; justify-content:center; background:var(--card); border:2px solid var(--border); overflow:hidden; flex-shrink:0; }
+    .emoji-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:6px; margin-top:10px; }
+    .emoji-opt { font-size:1.4rem; padding:6px; border-radius:8px; cursor:pointer; text-align:center; border:2px solid transparent; transition:all 0.15s; }
+    .emoji-opt:hover,.emoji-opt.selected { border-color:var(--green); background:rgba(0,255,135,0.08); }
+    .alert-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.88); z-index:300; display:flex; align-items:center; justify-content:center; padding:20px; }
+    .alert-box { background:var(--bg2); border:1px solid rgba(255,56,100,0.3); border-radius:16px; padding:22px; width:100%; max-width:420px; max-height:80vh; overflow-y:auto; }
+    .alert-item-a { padding:11px 13px; border-radius:9px; margin-bottom:8px; font-size:0.87rem; line-height:1.6; background:rgba(255,56,100,0.08); border:1px solid rgba(255,56,100,0.2); }
+    .alert-item-m { padding:11px 13px; border-radius:9px; margin-bottom:8px; font-size:0.87rem; line-height:1.6; background:rgba(0,255,135,0.05); border:1px solid rgba(0,255,135,0.18); }
+    .alert-item-p { padding:11px 13px; border-radius:9px; margin-bottom:8px; font-size:0.87rem; line-height:1.6; background:rgba(255,193,7,0.06); border:1px solid rgba(255,193,7,0.18); }
+    .theme-switch { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; background:var(--card); border:1px solid var(--border); border-radius:10px; margin-bottom:10px; }
+    .switch { position:relative; width:44px; height:24px; }
+    .switch input { opacity:0; width:0; height:0; }
+    .slider { position:absolute; cursor:pointer; inset:0; background:var(--border); border-radius:24px; transition:0.3s; }
+    .slider:before { content:''; position:absolute; height:18px; width:18px; left:3px; bottom:3px; background:var(--text); border-radius:50%; transition:0.3s; }
+    input:checked + .slider { background:var(--green); }
+    input:checked + .slider:before { transform:translateX(20px); background:#07070e; }
+    .changelog-item { padding:10px 14px; border-left:3px solid var(--green); margin-bottom:8px; background:var(--card); border-radius:0 8px 8px 0; }
+    .metric-scroll { display:flex; gap:6px; overflow-x:auto; padding-bottom:6px; margin-bottom:12px; -webkit-overflow-scrolling:touch; scrollbar-width:none; }
+    .metric-scroll::-webkit-scrollbar { display:none; }
+    .metric-chip { white-space:nowrap; padding:7px 14px; border-radius:20px; border:1px solid var(--border); background:transparent; color:var(--muted); cursor:pointer; font-size:0.82rem; font-weight:700; font-family:'DM Sans',sans-serif; transition:all 0.15s; }
+    .metric-chip.active { background:rgba(0,255,135,0.1); border-color:var(--green); color:var(--green); }
+    .chart-card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px; margin-bottom:10px; }
+    .expand-row { display:flex; gap:16px; padding-top:10px; margin-top:10px; border-top:1px solid var(--border); flex-wrap:wrap; }
+    .expand-stat { display:flex; flex-direction:column; gap:2px; }
+    .no-data { text-align:center; color:var(--muted); padding:24px; font-size:0.85rem; }
+  </style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+
+const SUPABASE_URL  = 'https://xmdktsqavrtifnrsaruo.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhtZGt0c3FhdnJ0aWZucnNhcnVvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzI4NTYsImV4cCI6MjA5NTEwODg1Nn0.ys6iTqg2-umW7ePi78WAdCZ66QkWOLu2Kg0FjE4yQOI';
+const APP_VERSION = '3.0';
+const APP_DATE    = '24 Mai 2026';
+const CHANGELOG = [
+  { v:'3.0', data:'24 Mai 2026', resumo:'Cards expandíveis, gráficos de progresso, pressão arterial, 5 separadores' },
+  { v:'2.0', data:'24 Mai 2026', resumo:'Perfil, peso/cintura, mensagens, temas claro/escuro' },
+  { v:'1.0', data:'23 Mai 2026', resumo:'Lançamento — registo diário, ranking, multas, fotos' },
+];
+const AVATARES = ['🏃','💪','🚴','🏊','⚽','🎾','🏋️','🧘','🤸','🥊','🏆','🔥','⚡','🦁','🐺','🦊','🐯','🦅','🌟','💎'];
+const METRICAS = [
+  { key:'pontos',   label:'Pontos',   unit:'pts'  },
+  { key:'calorias', label:'Calorias', unit:'kcal' },
+  { key:'passos',   label:'Passos',   unit:''     },
+  { key:'minutos',  label:'Minutos',  unit:'min'  },
+  { key:'peso',     label:'Peso',     unit:'kg'   },
+  { key:'cintura',  label:'Cintura',  unit:'cm'   },
+  { key:'pressao',  label:'Pressão',  unit:'mmHg' },
+];
+const PLAYER_COLORS = ['#00ff87','#ff3864','#60a5fa','#ffc107'];
+
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON);
+
+// ── Utils ──────────────────────────────────────────
+const hoje = () => new Date().toISOString().split('T')[0];
+const mesAtual = () => {
+  const d = new Date();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  return { inicio:`${d.getFullYear()}-${m}-01`, fim:`${d.getFullYear()}-${m}-31`, label:d.toLocaleDateString('pt-PT',{month:'long',year:'numeric'}) };
+};
+const semanaAtual = () => {
+  const d = new Date(); const day = d.getDay();
+  const diff = d.getDate() - day + (day===0?-6:1);
+  return new Date(d.setDate(diff)).toISOString().split('T')[0];
+};
+const fitScore = (passos, calorias, minutos) => Math.round((passos/100)+(calorias/8)+(minutos*1.5));
+const diasSemPeso = (ultimoPeso) => { if(!ultimoPeso) return 999; return Math.floor((new Date()-new Date(ultimoPeso))/(1000*60*60*24)); };
+const getPeriodFrom = (periodo) => {
+  const d = new Date();
+  if (periodo==='dias') d.setDate(d.getDate()-29);
+  else if (periodo==='semanas') d.setDate(d.getDate()-83);
+  else d.setFullYear(d.getFullYear()-1);
+  return d.toISOString().split('T')[0];
+};
+const groupByPeriodo = (rawData, metrica, periodo) => {
+  const grouped = {};
+  rawData.forEach(d => {
+    const date = new Date(d.data+'T12:00:00');
+    let key;
+    if (periodo==='dias') {
+      key = d.data;
+    } else if (periodo==='semanas') {
+      const day = date.getDay();
+      const diff = date.getDate()-day+(day===0?-6:1);
+      const mon = new Date(date); mon.setDate(diff);
+      key = mon.toISOString().split('T')[0];
+    } else {
+      key = d.data.substring(0,7);
+    }
+    if (!grouped[key]) grouped[key]=[];
+    grouped[key].push(d);
+  });
+  return Object.entries(grouped).sort(([a],[b])=>a.localeCompare(b)).map(([key,items])=>{
+    let value = null;
+    if (metrica==='pontos') value = items.reduce((s,d)=>s+fitScore(d.passos||0,d.calorias||0,d.minutos||0),0);
+    else if (metrica==='calorias') value = items.reduce((s,d)=>s+(d.calorias||0),0);
+    else if (metrica==='passos') value = items.reduce((s,d)=>s+(d.passos||0),0);
+    else if (metrica==='minutos') value = items.reduce((s,d)=>s+(d.minutos||0),0);
+    else if (metrica==='peso') { const v=items.filter(d=>d.peso); if(v.length) value=Math.round(v.reduce((s,d)=>s+d.peso,0)/v.length*10)/10; }
+    else if (metrica==='cintura') { const v=items.filter(d=>d.cintura); if(v.length) value=Math.round(v.reduce((s,d)=>s+d.cintura,0)/v.length); }
+    else if (metrica==='pressao') { const v=items.filter(d=>d.sistolica); if(v.length) value=v[v.length-1].sistolica; }
+    const date2 = new Date((key+(periodo==='meses'?'-01':'')+'T12:00:00'));
+    let label;
+    if (periodo==='meses') label=date2.toLocaleDateString('pt-PT',{month:'short'});
+    else label=`${date2.getDate()}/${date2.getMonth()+1}`;
+    return { label, value };
+  }).filter(d=>d.value!==null&&d.value!==undefined);
+};
+
+// ── Icons ──────────────────────────────────────────
+const HomeIcon   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+const PlusIcon   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="16"/><line x1="8" y1="12" x2="16" y2="12"/></svg>;
+const ChartIcon  = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>;
+const PodiumIcon = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="14" width="5" height="7" rx="1"/><rect x="9" y="10" width="5" height="11" rx="1"/><rect x="17" y="17" width="5" height="4" rx="1"/><path d="M12 2l1.5 3 3.5.5-2.5 2.5.5 3.5L12 10l-3 1.5.5-3.5L7 5.5 10.5 5z"/></svg>;
+const UserIcon   = () => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>;
+
+// ── Avatar ─────────────────────────────────────────
+function Avatar({ player, size }) {
+  const sz = size||40;
+  return (
+    <div className="avatar-circle" style={{width:sz,height:sz,fontSize:sz*0.48}}>
+      {player.avatar&&player.avatar.startsWith('http')
+        ? <img src={player.avatar} alt="av" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+        : <span>{player.avatar||'🏃'}</span>
+      }
+    </div>
+  );
+}
+
+// ── LineChart ──────────────────────────────────────
+function LineChart({ data, color }) {
+  if (!data||data.length===0) return <div className="no-data">Sem dados para este período</div>;
+  const W=300, H=80, PAD=12;
+  const values = data.map(d=>d.value);
+  const maxV = Math.max(...values);
+  const minV = Math.min(...values);
+  const range = maxV-minV||1;
+  const pts = data.map((d,i)=>({
+    x: PAD+(i/Math.max(data.length-1,1))*(W-PAD*2),
+    y: PAD+(1-(d.value-minV)/range)*(H-PAD*2),
+    label:d.label, value:d.value
+  }));
+  const pathD = pts.map((p,i)=>`${i===0?'M':'L'} ${p.x.toFixed(1)} ${p.y.toFixed(1)}`).join(' ');
+  const step = Math.max(1,Math.ceil(data.length/6));
+  const c = color||'var(--green)';
+  return (
+    <div>
+      <svg viewBox={`0 0 ${W} ${H+18}`} width="100%" style={{overflow:'visible'}}>
+        <line x1={PAD} y1={H-PAD} x2={W-PAD} y2={H-PAD} stroke="var(--border)" strokeWidth="1"/>
+        <path d={pathD} fill="none" stroke={c} strokeWidth="2" strokeLinejoin="round"/>
+        {pts.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r="3" fill={c}/>)}
+        {pts.filter((_,i)=>i%step===0||i===pts.length-1).map((p,i)=>(
+          <text key={i} x={p.x} y={H+14} textAnchor="middle" fill="rgba(200,200,200,0.5)" fontSize="8">{p.label}</text>
+        ))}
+      </svg>
+      <div style={{textAlign:'right',fontSize:'0.75rem',color:'var(--muted)',marginTop:2}}>
+        Último: <strong style={{color:c}}>{values[values.length-1]}</strong>
+      </div>
+    </div>
+  );
+}
+
+// ── Loading ────────────────────────────────────────
+function LoadingScreen() {
+  return (
+    <div style={{display:'flex',flexDirection:'column',alignItems:'center',justifyContent:'center',minHeight:'100vh',gap:20}}>
+      <div className="logo">FIT<span>WAR</span></div>
+      <div className="spinner"/>
+    </div>
+  );
+}
+
+// ── Setup ──────────────────────────────────────────
+function SetupScreen({ onComplete }) {
+  const [jogadores, setJogadores] = React.useState(Array(4).fill(null).map(()=>({nome:'',pin:''})));
+  const [loading, setLoading] = React.useState(false);
+  const [erro, setErro] = React.useState('');
+  const update = (i,field,val) => { const j=[...jogadores]; j[i]={...j[i],[field]:val}; setJogadores(j); };
+  const submit = async () => {
+    if (jogadores.some(j=>!j.nome.trim()||!j.pin.trim())) { setErro('Preenche todos os nomes e PINs.'); return; }
+    if (new Set(jogadores.map(j=>j.nome.trim().toLowerCase())).size<4) { setErro('Nomes duplicados.'); return; }
+    setLoading(true); setErro('');
+    const { error } = await sb.from('players').insert(jogadores.map(j=>({nome:j.nome.trim(),pin:j.pin.trim(),multas:0,avatar:'🏃'})));
+    if (error) { setErro(error.message); setLoading(false); return; }
+    onComplete();
+  };
+  return (
+    <div className="screen">
+      <div style={{paddingTop:40,paddingBottom:28}}>
+        <div className="logo">FIT<span>WAR</span></div>
+        <div className="muted" style={{marginTop:8,fontSize:'0.9rem'}}>Configuração inicial — 4 jogadores e PINs.</div>
+      </div>
+      {jogadores.map((j,i)=>(
+        <div className="card" key={i}>
+          <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1rem',marginBottom:10,color:'var(--muted)',letterSpacing:1}}>JOGADOR {i+1}</div>
+          <div className="field">
+            <label>Nome</label>
+            <input type="text" placeholder="Ex: Manuel" value={j.nome} onChange={e=>update(i,'nome',e.target.value)} />
+          </div>
+          <div className="field" style={{marginBottom:0}}>
+            <label>PIN</label>
+            <input type="password" inputMode="numeric" placeholder="..." maxLength={6} value={j.pin} onChange={e=>update(i,'pin',e.target.value.replace(/\D/g,''))} />
+          </div>
+        </div>
+      ))}
+      {erro&&<div className="error">⚠️ {erro}</div>}
+      <button className="btn btn-primary" onClick={submit} disabled={loading} style={{marginTop:8}}>{loading?'A criar...':'Arrancar o FitWar 🔥'}</button>
+    </div>
+  );
+}
+
+// ── Login ──────────────────────────────────────────
+function LoginScreen({ players, onLogin }) {
+  const [selectedId, setSelectedId] = React.useState('');
+  const [pin, setPin] = React.useState('');
+  const [erro, setErro] = React.useState('');
+  const [showCL, setShowCL] = React.useState(false);
+  const handleLogin = () => {
+    if (!selectedId) { setErro('Escolhe o teu nome.'); return; }
+    const p = players.find(x=>x.id===selectedId);
+    if (!p||p.pin!==pin) { setErro('PIN errado.'); setPin(''); return; }
+    onLogin(p);
+  };
+  return (
+    <div className="screen">
+      <div style={{paddingTop:50,paddingBottom:28,textAlign:'center'}}>
+        <div className="logo" style={{fontSize:'4rem'}}>FIT<span>WAR</span></div>
+        <div style={{marginTop:10,display:'flex',alignItems:'center',justifyContent:'center',gap:8}}>
+          <span className="version-badge" onClick={()=>setShowCL(!showCL)}>v{APP_VERSION} · {APP_DATE}</span>
+        </div>
+        {showCL&&(
+          <div style={{marginTop:14,textAlign:'left'}}>
+            {CHANGELOG.map((c,i)=>(
+              <div key={i} className="changelog-item">
+                <div style={{fontWeight:700,fontSize:'0.85rem'}}>v{c.v} <span style={{color:'var(--muted)',fontWeight:400,fontSize:'0.78rem'}}>— {c.data}</span></div>
+                <div style={{fontSize:'0.82rem',color:'var(--muted)',marginTop:2}}>{c.resumo}</div>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="muted" style={{marginTop:10,fontSize:'0.88rem'}}>Quem vai pagar a conta este mês? 😈</div>
+      </div>
+      <div className="card">
+        <div className="field">
+          <label>Quem és tu?</label>
+          <select value={selectedId} onChange={e=>{setSelectedId(e.target.value);setErro('');}}>
+            <option value="">Escolhe o teu nome...</option>
+            {players.map(p=><option key={p.id} value={p.id}>{p.avatar&&!p.avatar.startsWith('http')?p.avatar+' ':''}{p.nickname||p.nome}</option>)}
+          </select>
+        </div>
+        <div className="field" style={{marginBottom:0}}>
+          <label>PIN</label>
+          <input type="password" inputMode="numeric" placeholder="..." maxLength={6} value={pin} onChange={e=>{setPin(e.target.value.replace(/\D/g,''));setErro('');}} onKeyDown={e=>e.key==='Enter'&&handleLogin()} />
+        </div>
+        {erro&&<div className="error">⚠️ {erro}</div>}
+        <button className="btn btn-primary" onClick={handleLogin} style={{marginTop:14}}>Entrar 💪</button>
+      </div>
+    </div>
+  );
+}
+
+// ── Bottom Nav ─────────────────────────────────────
+function BottomNav({ screen, setScreen, temHoje, hasAlerts }) {
+  return (
+    <nav className="bottom-nav">
+      <button className={'nav-btn'+(screen==='dashboard'?' active':'')} onClick={()=>setScreen('dashboard')}><HomeIcon />Início</button>
+      <button className={'nav-btn'+(screen==='entry'?' active':'')} onClick={()=>setScreen('entry')}>
+        <PlusIcon />{!temHoje&&<span className="dot"/>}Registar
+      </button>
+      <button className={'nav-btn'+(screen==='progresso'?' active':'')} onClick={()=>setScreen('progresso')}><ChartIcon />Progresso</button>
+      <button className={'nav-btn'+(screen==='leaderboard'?' active':'')} onClick={()=>setScreen('leaderboard')}><PodiumIcon />Ranking</button>
+      <button className={'nav-btn'+(screen==='perfil'?' active':'')} onClick={()=>setScreen('perfil')}>
+        <UserIcon />{hasAlerts&&<span className="dot"/>}Perfil
+      </button>
+    </nav>
+  );
+}
+
+// ── Score Card (expandable) ────────────────────────
+function ScoreCard({ player, meuScore, dias, loading }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const [ultimoPeso, setUltimoPeso] = React.useState(null);
+  const [pesoBuscado, setPesoBuscado] = React.useState(false);
+
+  const handleExpand = async () => {
+    const next = !expanded;
+    setExpanded(next);
+    if (next && !pesoBuscado) {
+      const { data } = await sb.from('medidas').select('peso').eq('player_id',player.id).not('peso','is',null).order('data',{ascending:false}).limit(1);
+      if (data&&data.length>0) setUltimoPeso(data[0].peso);
+      setPesoBuscado(true);
+    }
+  };
+
+  return (
+    <div className="card" style={{borderColor:'rgba(0,255,135,0.2)',cursor:'pointer'}} onClick={handleExpand}>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'flex-start'}}>
+        <div>
+          <div className="label-xs">Teu FitScore este mês</div>
+          <div className="big-score" style={{marginTop:4}}>{loading?<span className="spinner"/>:meuScore.toLocaleString()}</div>
+          <div className="muted" style={{fontSize:'0.78rem',marginTop:4}}>{dias} dia{dias!==1?'s':''} com registo</div>
+        </div>
+        <div style={{color:'var(--muted)',fontSize:'1rem',marginTop:4}}>{expanded?'▲':'▼'}</div>
+      </div>
+      {expanded&&(
+        <div className="expand-row">
+          {player.idade&&<div className="expand-stat"><div className="label-xs">Idade</div><div style={{fontWeight:700}}>{player.idade} anos</div></div>}
+          {player.altura&&<div className="expand-stat"><div className="label-xs">Altura</div><div style={{fontWeight:700}}>{player.altura} cm</div></div>}
+          {ultimoPeso&&<div className="expand-stat"><div className="label-xs">Peso</div><div style={{fontWeight:700}}>{ultimoPeso} kg</div></div>}
+          {player.sexo&&<div className="expand-stat"><div className="label-xs">Sexo</div><div style={{fontWeight:700}}>{player.sexo==='M'?'Masc.':player.sexo==='F'?'Fem.':'Outro'}</div></div>}
+          {!player.idade&&!player.altura&&!ultimoPeso&&<div className="muted" style={{fontSize:'0.82rem'}}>Preenche o teu perfil para ver mais dados.</div>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Mini Leaderboard ───────────────────────────────
+function MiniLeaderboard({ players, currentPlayerId }) {
+  const [ranks, setRanks] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [medidas, setMedidas] = React.useState({});
+  const [expandedId, setExpandedId] = React.useState(null);
+  const mes = mesAtual();
+
+  React.useEffect(()=>{
+    (async()=>{
+      const [{ data: entries },{ data: meds }] = await Promise.all([
+        sb.from('entries').select('player_id,passos,calorias,minutos').gte('data',mes.inicio).lte('data',mes.fim),
+        sb.from('medidas').select('player_id,peso,data').not('peso','is',null).order('data',{ascending:false})
+      ]);
+      const medByPlayer = {};
+      (meds||[]).forEach(m=>{ if(!medByPlayer[m.player_id]) medByPlayer[m.player_id]=m; });
+      setMedidas(medByPlayer);
+      const r = players.map(p=>{
+        const es = entries?entries.filter(e=>e.player_id===p.id):[];
+        return {...p,score:es.reduce((s,e)=>s+fitScore(e.passos,e.calorias,e.minutos),0)};
+      }).sort((a,b)=>b.score-a.score);
+      setRanks(r); setLoading(false);
+    })();
+  },[]);
+
+  if (loading) return <div className="muted" style={{padding:'12px 0',fontSize:'0.85rem'}}>A carregar...</div>;
+
+  return (
+    <div>
+      {ranks.map((p,i)=>(
+        <div key={p.id} className={'rank-row'+(i===0?' winner':'')+(i===ranks.length-1&&ranks.length>1?' loser':'')} onClick={()=>setExpandedId(expandedId===p.id?null:p.id)} style={{cursor:'pointer'}}>
+          <div className="rank-inner">
+            <div className="rank-num">{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}º`}</div>
+            <Avatar player={p} size={30} />
+            <div className="rank-name" style={{marginLeft:6}}>
+              {p.nickname||p.nome}
+              {p.id===currentPlayerId&&<span className="badge badge-you">(tu)</span>}
+              {i===ranks.length-1&&ranks.length>1&&<span className="badge badge-red">PAGA 😅</span>}
+              {p.multas>0&&<span className="badge badge-red">🚨{p.multas}</span>}
+            </div>
+            <div className="rank-score">{p.score.toLocaleString()}</div>
+          </div>
+          {expandedId===p.id&&(
+            <div className="expand-row">
+              {p.idade&&<div className="expand-stat"><div className="label-xs">Idade</div><div style={{fontWeight:700}}>{p.idade} anos</div></div>}
+              {p.altura&&<div className="expand-stat"><div className="label-xs">Altura</div><div style={{fontWeight:700}}>{p.altura} cm</div></div>}
+              {medidas[p.id]&&<div className="expand-stat"><div className="label-xs">Último peso</div><div style={{fontWeight:700}}>{medidas[p.id].peso} kg</div></div>}
+              {!p.idade&&!p.altura&&!medidas[p.id]&&<div className="muted" style={{fontSize:'0.8rem'}}>Perfil não preenchido.</div>}
+            </div>
+          )}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ── Dashboard ──────────────────────────────────────
+function Dashboard({ player, players, setScreen }) {
+  const [meuScore, setMeuScore] = React.useState(0);
+  const [dias, setDias] = React.useState(0);
+  const [temHoje, setTemHoje] = React.useState(false);
+  const [ultimoPeso, setUltimoPeso] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+  const mes = mesAtual();
+
+  React.useEffect(()=>{
+    (async()=>{
+      const [{ data: entries },{ data: med }] = await Promise.all([
+        sb.from('entries').select('passos,calorias,minutos,data').eq('player_id',player.id).gte('data',mes.inicio).lte('data',mes.fim),
+        sb.from('medidas').select('data,peso').eq('player_id',player.id).not('peso','is',null).order('data',{ascending:false}).limit(1)
+      ]);
+      if (entries) { setMeuScore(entries.reduce((s,e)=>s+fitScore(e.passos,e.calorias,e.minutos),0)); setDias(entries.length); setTemHoje(entries.some(e=>e.data===hoje())); }
+      if (med&&med.length>0) setUltimoPeso(med[0].data);
+      setLoading(false);
+    })();
+  },[]);
+
+  const diasP = diasSemPeso(ultimoPeso);
+
+  return (
+    <div className="screen">
+      <div style={{paddingTop:22,paddingBottom:14,display:'flex',alignItems:'center',gap:12}}>
+        <Avatar player={player} size={46} />
+        <div>
+          <div className="label-xs">{mes.label}</div>
+          <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1.9rem',letterSpacing:1,marginTop:2}}>Olá, {player.nickname||player.nome} 👋</div>
+        </div>
+      </div>
+      {diasP>=7&&<div className="warn-box">⚖️ Não registas o teu peso há {diasP===999?'muito tempo':`${diasP} dias`}. Vai à balança!</div>}
+      <ScoreCard player={player} meuScore={meuScore} dias={dias} loading={loading} />
+      <div className="card">
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1rem',marginBottom:10,letterSpacing:1}}>HOJE</div>
+        {temHoje?(
+          <div style={{display:'flex',alignItems:'center',gap:10}}>
+            <span style={{fontSize:'1.4rem'}}>✅</span>
+            <div><div style={{fontWeight:700}}>Registo feito!</div><div className="muted" style={{fontSize:'0.82rem'}}>Continua assim amanhã 💪</div></div>
+          </div>
+        ):(
+          <div>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+              <span style={{fontSize:'1.4rem'}}>⚠️</span>
+              <div><div style={{fontWeight:700,color:'var(--red)'}}>Ainda não registaste hoje</div><div className="muted" style={{fontSize:'0.82rem'}}>Não fiques para trás!</div></div>
+            </div>
+            <button className="btn btn-primary" onClick={()=>setScreen('entry')}>Registar agora 📸</button>
+          </div>
+        )}
+      </div>
+      <div style={{marginTop:6}}>
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1.3rem',letterSpacing:1,marginBottom:8}}>Ranking do mês</div>
+        <MiniLeaderboard players={players} currentPlayerId={player.id} />
+      </div>
+      <button className="btn btn-ghost" style={{marginTop:8}} onClick={()=>setScreen('leaderboard')}>Ver ranking completo →</button>
+    </div>
+  );
+}
+
+// ── Entry Form ─────────────────────────────────────
+function EntryForm({ player, onSuccess }) {
+  const [passos, setPassos]       = React.useState('');
+  const [calorias, setCalorias]   = React.useState('');
+  const [minutos, setMinutos]     = React.useState('');
+  const [modoProva, setModoProva] = React.useState('foto');
+  const [foto, setFoto]           = React.useState(null);
+  const [preview, setPreview]     = React.useState(null);
+  const [linkProva, setLinkProva] = React.useState('');
+  const [mensagem, setMensagem]   = React.useState('');
+  const [peso, setPeso]           = React.useState('');
+  const [cintura, setCintura]     = React.useState('');
+  const [sistolica, setSistolica] = React.useState('');
+  const [diastolica, setDiastolica] = React.useState('');
+  const [precisaPeso, setPrecisaPeso] = React.useState(false);
+  const [loading, setLoading]     = React.useState(false);
+  const [erro, setErro]           = React.useState('');
+  const [jaFeito, setJaFeito]     = React.useState(null);
+  const [sucesso, setSucesso]     = React.useState(false);
+
+  React.useEffect(()=>{
+    (async()=>{
+      const [{ data: entry },{ data: medSemana }] = await Promise.all([
+        sb.from('entries').select('id').eq('player_id',player.id).eq('data',hoje()).maybeSingle(),
+        sb.from('medidas').select('id').eq('player_id',player.id).gte('data',semanaAtual()).maybeSingle()
+      ]);
+      setJaFeito(!!entry); setPrecisaPeso(!medSemana);
+    })();
+  },[]);
+
+  const handleFoto = (e) => { const f=e.target.files[0]; if(!f)return; setFoto(f); setPreview(URL.createObjectURL(f)); };
+
+  const submit = async () => {
+    if (!calorias&&!minutos) { setErro('Preenche pelo menos calorias ou minutos.'); return; }
+    if (modoProva==='foto'&&!foto) { setErro('Junta uma foto de prova 📸'); return; }
+    if (modoProva==='link'&&!linkProva.trim()) { setErro('Cola o link de prova 🔗'); return; }
+    if (precisaPeso&&!peso) { setErro('É obrigatório registar o peso esta semana ⚖️'); return; }
+    setLoading(true); setErro('');
+
+    let foto_url = modoProva==='link'?linkProva.trim():null;
+    if (modoProva==='foto'&&foto) {
+      const ext=foto.name.split('.').pop()||'jpg';
+      const path=`${player.id}/${hoje()}.${ext}`;
+      const { error: upErr } = await sb.storage.from('provas').upload(path,foto,{upsert:true});
+      if (upErr) { setErro('Erro no upload: '+upErr.message); setLoading(false); return; }
+      const { data: { publicUrl } } = sb.storage.from('provas').getPublicUrl(path);
+      foto_url = publicUrl;
+    }
+
+    const { error: insErr } = await sb.from('entries').insert({
+      player_id:player.id, data:hoje(),
+      passos:parseInt(passos)||0, calorias:parseInt(calorias)||0, minutos:parseInt(minutos)||0, foto_url
+    });
+    if (insErr) { setErro('Erro ao guardar: '+insErr.message); setLoading(false); return; }
+
+    if (peso||cintura||sistolica) {
+      await sb.from('medidas').upsert({
+        player_id:player.id, data:hoje(),
+        peso:peso?parseFloat(peso):null,
+        cintura:cintura?parseInt(cintura):null,
+        sistolica:sistolica?parseInt(sistolica):null,
+        diastolica:diastolica?parseInt(diastolica):null
+      },{onConflict:'player_id,data'});
+    }
+
+    if (mensagem.trim()) {
+      const { data: outros } = await sb.from('players').select('id').neq('id',player.id);
+      if (outros) {
+        for (const o of outros) {
+          await sb.from('mensagens').insert({ de_player_id:player.id, para_player_id:o.id, mensagem:`💬 ${player.nickname||player.nome}: "${mensagem.trim()}"` });
+        }
+      }
+    }
+
+    setSucesso(true);
+    setTimeout(()=>onSuccess(),1800);
+  };
+
+  if (jaFeito===null) return <div className="screen" style={{display:'flex',alignItems:'center',justifyContent:'center'}}><div className="spinner"/></div>;
+  if (jaFeito||sucesso) return (
+    <div className="screen">
+      <div className="success-screen">
+        <div style={{fontSize:'4.5rem',marginBottom:14}}>{sucesso?'🚀':'✅'}</div>
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'2rem',marginBottom:8}}>{sucesso?'SUBMETIDO!':'JÁ REGISTASTE HOJE!'}</div>
+        <div className="muted" style={{fontSize:'0.9rem'}}>{sucesso?'Registo guardado!':'Um registo por dia. Volta amanhã 💪'}</div>
+      </div>
+    </div>
+  );
+
+  const p2=parseInt(passos)||0, c2=parseInt(calorias)||0, m2=parseInt(minutos)||0;
+  const scorePreview = (c2||m2)?fitScore(p2,c2,m2):null;
+
+  return (
+    <div className="screen">
+      <div style={{paddingTop:22,paddingBottom:14}}>
+        <div className="label-xs">{hoje()}</div>
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'2rem',letterSpacing:1,marginTop:4}}>Registo de hoje</div>
+      </div>
+      {precisaPeso&&<div className="warn-box">⚖️ Obrigatório: ainda não registaste o peso esta semana!</div>}
+      <div className="card">
+        <div className="field">
+          <label>👟 Passos <span style={{fontWeight:400,fontSize:'0.68rem',color:'var(--muted)',textTransform:'none'}}>(opcional)</span></label>
+          <input type="number" inputMode="numeric" placeholder="Ex: 10000" value={passos} onChange={e=>setPassos(e.target.value)} />
+        </div>
+        <div className="field">
+          <label>🔥 Calorias gastas</label>
+          <input type="number" inputMode="numeric" placeholder="Ex: 450" value={calorias} onChange={e=>setCalorias(e.target.value)} />
+        </div>
+        <div className="field" style={{marginBottom:0}}>
+          <label>⏱️ Minutos ativos</label>
+          <input type="number" inputMode="numeric" placeholder="Ex: 45" value={minutos} onChange={e=>setMinutos(e.target.value)} />
+        </div>
+      </div>
+      <div className="card">
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'0.95rem',letterSpacing:1,marginBottom:10,color:'var(--muted)'}}>⚖️ MEDIDAS <span style={{fontSize:'0.7rem',fontFamily:'DM Sans,sans-serif',textTransform:'none',letterSpacing:0}}>(opcionais)</span></div>
+        <div style={{display:'flex',gap:10,marginBottom:10}}>
+          <div className="field" style={{flex:1,marginBottom:0}}>
+            <label>Peso (kg){precisaPeso&&<span style={{color:'var(--red)'}}> *</span>}</label>
+            <input type="number" inputMode="decimal" placeholder="78.5" value={peso} onChange={e=>setPeso(e.target.value)} />
+          </div>
+          <div className="field" style={{flex:1,marginBottom:0}}>
+            <label>Cintura (cm)</label>
+            <input type="number" inputMode="numeric" placeholder="88" value={cintura} onChange={e=>setCintura(e.target.value)} />
+          </div>
+        </div>
+        <div style={{display:'flex',gap:10,alignItems:'flex-end'}}>
+          <div className="field" style={{flex:1,marginBottom:0}}>
+            <label>Pressão sistólica</label>
+            <input type="number" inputMode="numeric" placeholder="120" value={sistolica} onChange={e=>setSistolica(e.target.value)} />
+          </div>
+          <div style={{color:'var(--muted)',padding:'0 4px 12px',fontSize:'1.2rem'}}>/</div>
+          <div className="field" style={{flex:1,marginBottom:0}}>
+            <label>Diastólica</label>
+            <input type="number" inputMode="numeric" placeholder="80" value={diastolica} onChange={e=>setDiastolica(e.target.value)} />
+          </div>
+        </div>
+      </div>
+      <div className="card">
+        <div className="toggle-row">
+          <button className={'toggle-btn'+(modoProva==='foto'?' active':'')} onClick={()=>setModoProva('foto')}>📷 Foto</button>
+          <button className={'toggle-btn'+(modoProva==='link'?' active':'')} onClick={()=>setModoProva('link')}>🔗 Link</button>
+        </div>
+        {modoProva==='foto'?(
+          <div className="field" style={{marginBottom:0}}>
+            <label>📸 Foto de prova</label>
+            <input id="foto-cam" type="file" accept="image/*" capture="environment" onChange={handleFoto} style={{display:'none'}} />
+            <input id="foto-gal" type="file" accept="image/*" onChange={handleFoto} style={{display:'none'}} />
+            {preview?(
+              <div className="photo-zone filled" onClick={()=>document.getElementById('foto-gal').click()}>
+                <img src={preview} alt="prova" />
+              </div>
+            ):(
+              <div style={{display:'flex',gap:8}}>
+                <button className="btn btn-ghost" style={{flex:1,padding:'14px 8px',fontSize:'0.9rem',width:'auto'}} onClick={()=>document.getElementById('foto-cam').click()}>📷<br/><span style={{fontSize:'0.7rem',color:'var(--muted)'}}>Câmara</span></button>
+                <button className="btn btn-ghost" style={{flex:1,padding:'14px 8px',fontSize:'0.9rem',width:'auto'}} onClick={()=>document.getElementById('foto-gal').click()}>🖼️<br/><span style={{fontSize:'0.7rem',color:'var(--muted)'}}>Galeria</span></button>
+              </div>
+            )}
+          </div>
+        ):(
+          <div className="field" style={{marginBottom:0}}>
+            <label>🔗 Link de prova</label>
+            <input type="url" placeholder="https://..." value={linkProva} onChange={e=>setLinkProva(e.target.value)} />
+            <div className="muted" style={{fontSize:'0.78rem',marginTop:4}}>Strava, Samsung Health, Google Fit, etc.</div>
+          </div>
+        )}
+      </div>
+      <div className="card">
+        <div className="field" style={{marginBottom:0}}>
+          <label>💬 Mensagem aos outros <span style={{fontWeight:400,fontSize:'0.68rem',color:'var(--muted)',textTransform:'none'}}>(opcional)</span></label>
+          <textarea placeholder="Ex: Hoje arrasámos! 💪" value={mensagem} onChange={e=>setMensagem(e.target.value)} />
+        </div>
+      </div>
+      {scorePreview!==null&&(
+        <div className="score-preview">
+          <div>
+            <div className="label-xs">FitScore de hoje</div>
+            <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1.8rem',color:'var(--green)',marginTop:2}}>+{scorePreview}</div>
+          </div>
+          <div style={{fontSize:'0.75rem',color:'var(--muted)',textAlign:'right',lineHeight:1.8}}>
+            {p2>0&&<div>Passos: {Math.round(p2/100)}</div>}
+            {c2>0&&<div>Cal: {Math.round(c2/8)}</div>}
+            {m2>0&&<div>Min: {Math.round(m2*1.5)}</div>}
+          </div>
+        </div>
+      )}
+      {erro&&<div className="error">⚠️ {erro}</div>}
+      <button className="btn btn-primary" onClick={submit} disabled={loading}>{loading?'A guardar...':'Submeter 🚀'}</button>
+    </div>
+  );
+}
+
+// ── Leaderboard ────────────────────────────────────
+function LeaderboardFull({ players, currentPlayer }) {
+  const [ranks, setRanks]         = React.useState([]);
+  const [loading, setLoading]     = React.useState(true);
+  const [fotoModal, setFotoModal] = React.useState(null);
+  const mes = mesAtual();
+
+  const load = async () => {
+    setLoading(true);
+    const [{ data: entries },{ data: medidas }] = await Promise.all([
+      sb.from('entries').select('player_id,passos,calorias,minutos,data,foto_url').gte('data',mes.inicio).lte('data',mes.fim).order('data',{ascending:false}),
+      sb.from('medidas').select('player_id,data,peso').gte('data',mes.inicio).lte('data',mes.fim).order('data',{ascending:false})
+    ]);
+    const r = players.map(p=>{
+      const es = entries?entries.filter(e=>e.player_id===p.id):[];
+      const ms = medidas?medidas.filter(m=>m.player_id===p.id&&m.peso):[];
+      return {
+        ...p,
+        score:    es.reduce((s,e)=>s+fitScore(e.passos,e.calorias,e.minutos),0),
+        passos:   es.reduce((s,e)=>s+e.passos,0),
+        calorias: es.reduce((s,e)=>s+e.calorias,0),
+        minutos:  es.reduce((s,e)=>s+e.minutos,0),
+        dias:     es.length,
+        ultima_foto:  es.length>0?es[0].foto_url:null,
+        ultimo_peso:  ms.length>0?ms[0].peso:null,
+        dias_sem_peso:diasSemPeso(ms.length>0?ms[0].data:null)
+      };
+    }).sort((a,b)=>b.score-a.score);
+    setRanks(r); setLoading(false);
+  };
+
+  React.useEffect(()=>{ load(); },[]);
+
+  if (loading) return <div className="screen" style={{display:'flex',alignItems:'center',justifyContent:'center'}}><div className="spinner"/></div>;
+  const loser = ranks.length>1?ranks[ranks.length-1]:null;
+
+  return (
+    <div className="screen">
+      <div style={{paddingTop:22,paddingBottom:12}}>
+        <div className="label-xs">{mes.label}</div>
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'2.1rem',letterSpacing:1,marginTop:4}}>RANKING 🏆</div>
+      </div>
+      {loser&&(
+        <div className="card" style={{borderColor:'rgba(255,56,100,0.3)',background:'rgba(255,56,100,0.05)',marginBottom:14,textAlign:'center'}}>
+          <div style={{fontSize:'0.7rem',textTransform:'uppercase',letterSpacing:1,color:'var(--red)',fontWeight:700}}>🚨 Em último este mês</div>
+          <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'2rem',marginTop:4}}>{loser.nickname||loser.nome}</div>
+          <div style={{color:'var(--muted)',fontSize:'0.82rem'}}>Vai a correr! 🏃</div>
+        </div>
+      )}
+      {ranks.map((p,i)=>(
+        <div key={p.id} className={'rank-row'+(i===0?' winner':'')+(i===ranks.length-1&&ranks.length>1?' loser':'')}>
+          <div className="rank-inner">
+            <div className="rank-num">{i===0?'🥇':i===1?'🥈':i===2?'🥉':`${i+1}º`}</div>
+            <Avatar player={p} size={32} />
+            <div className="rank-name" style={{marginLeft:6}}>
+              {p.nickname||p.nome}
+              {p.id===currentPlayer.id&&<span className="badge badge-you">(tu)</span>}
+              {i===ranks.length-1&&ranks.length>1&&<span className="badge badge-red">PAGA 😅</span>}
+              {p.multas>0&&<span className="badge badge-red">🚨{p.multas}</span>}
+            </div>
+            <div style={{textAlign:'right'}}>
+              <div className="rank-score" style={{color:i===ranks.length-1&&ranks.length>1?'var(--red)':'var(--green)'}}>{p.score.toLocaleString()}</div>
+              <div style={{fontSize:'0.68rem',color:'var(--muted)'}}>{p.dias} dias</div>
+            </div>
+          </div>
+          <div className="rank-stats">
+            <span className="stat-chip">👟 {p.passos.toLocaleString()}</span>
+            <span className="stat-chip">🔥 {p.calorias.toLocaleString()}</span>
+            <span className="stat-chip">⏱️ {p.minutos}m</span>
+            {p.ultimo_peso&&<span className="stat-chip">⚖️ {p.ultimo_peso}kg</span>}
+            {p.dias_sem_peso>=7&&<span className="stat-chip" style={{color:'var(--yellow)'}}>⚠️ sem peso</span>}
+            {p.ultima_foto&&<span className="stat-chip" style={{cursor:'pointer',color:'var(--green)',textDecoration:'underline'}} onClick={()=>setFotoModal(p.ultima_foto)}>📸 prova</span>}
+          </div>
+        </div>
+      ))}
+      <div className="card" style={{marginTop:12,textAlign:'center'}}>
+        <div className="label-xs" style={{marginBottom:6}}>Fórmula FitScore</div>
+        <div style={{fontSize:'0.84rem',color:'var(--muted)'}}>Passos ÷ 100 + Calorias ÷ 8 + Minutos × 1.5</div>
+      </div>
+      <button className="btn btn-ghost" style={{marginTop:8}} onClick={load}>Atualizar ↻</button>
+      {fotoModal&&(
+        <div onClick={()=>setFotoModal(null)} style={{position:'fixed',inset:0,background:'rgba(0,0,0,0.92)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:200,padding:20}}>
+          <img src={fotoModal} style={{maxWidth:'100%',maxHeight:'90vh',borderRadius:12}} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Progresso ──────────────────────────────────────
+function ProgressoScreen({ players, currentPlayer }) {
+  const [metrica, setMetrica] = React.useState('pontos');
+  const [periodo, setPeriodo] = React.useState('dias');
+  const [dadosPorPlayer, setDadosPorPlayer] = React.useState({});
+  const [loading, setLoading] = React.useState(true);
+
+  const fetchDados = async (m, p) => {
+    setLoading(true);
+    const fromStr = getPeriodFrom(p);
+    const isEntries = ['pontos','calorias','passos','minutos'].includes(m);
+    const [{ data: entries },{ data: medidas }] = await Promise.all([
+      isEntries
+        ? sb.from('entries').select('player_id,data,passos,calorias,minutos').gte('data',fromStr).order('data')
+        : Promise.resolve({data:[]}),
+      !isEntries
+        ? sb.from('medidas').select('player_id,data,peso,cintura,sistolica,diastolica').gte('data',fromStr).order('data')
+        : Promise.resolve({data:[]})
+    ]);
+    const result = {};
+    players.forEach(pl=>{
+      const raw = isEntries
+        ? (entries||[]).filter(e=>e.player_id===pl.id)
+        : (medidas||[]).filter(e=>e.player_id===pl.id);
+      result[pl.id] = groupByPeriodo(raw, m, p);
+    });
+    setDadosPorPlayer(result);
+    setLoading(false);
+  };
+
+  React.useEffect(()=>{ fetchDados(metrica,periodo); },[metrica,periodo]);
+
+  const metricaLabel = METRICAS.find(x=>x.key===metrica)?.label||metrica;
+  const currentIdx = players.findIndex(p=>p.id===currentPlayer.id);
+  const currentColor = PLAYER_COLORS[currentIdx]||PLAYER_COLORS[0];
+  const outros = players.filter(p=>p.id!==currentPlayer.id);
+
+  return (
+    <div className="screen">
+      <div style={{paddingTop:22,paddingBottom:10}}>
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'2rem',letterSpacing:1}}>PROGRESSO 📈</div>
+      </div>
+
+      <div className="metric-scroll">
+        {METRICAS.map(m=>(
+          <button key={m.key} className={'metric-chip'+(metrica===m.key?' active':'')} onClick={()=>setMetrica(m.key)}>{m.label}</button>
+        ))}
+      </div>
+
+      <div className="toggle-row">
+        {[{key:'dias',label:'Dias'},{key:'semanas',label:'Semanas'},{key:'meses',label:'Meses'}].map(p=>(
+          <button key={p.key} className={'toggle-btn'+(periodo===p.key?' active':'')} onClick={()=>setPeriodo(p.key)}>{p.label}</button>
+        ))}
+      </div>
+
+      {loading?(
+        <div style={{display:'flex',justifyContent:'center',padding:40}}><div className="spinner"/></div>
+      ):(
+        <div>
+          <div className="chart-card" style={{borderColor:currentColor+'44'}}>
+            <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:12}}>
+              <Avatar player={currentPlayer} size={32} />
+              <div>
+                <div style={{fontWeight:700}}>{currentPlayer.nickname||currentPlayer.nome} <span style={{color:'var(--muted)',fontWeight:400,fontSize:'0.8rem'}}>(tu)</span></div>
+                <div style={{fontSize:'0.75rem',color:'var(--muted)'}}>{metricaLabel}</div>
+              </div>
+            </div>
+            <LineChart data={dadosPorPlayer[currentPlayer.id]||[]} color={currentColor} />
+          </div>
+
+          {outros.map((p,i)=>{
+            const idx = players.findIndex(x=>x.id===p.id);
+            const color = PLAYER_COLORS[idx]||PLAYER_COLORS[1+i];
+            return (
+              <div key={p.id} className="chart-card" style={{borderColor:color+'44'}}>
+                <div style={{display:'flex',alignItems:'center',gap:10,marginBottom:10}}>
+                  <Avatar player={p} size={28} />
+                  <div>
+                    <div style={{fontWeight:700,fontSize:'0.9rem'}}>{p.nickname||p.nome}</div>
+                    <div style={{fontSize:'0.72rem',color:'var(--muted)'}}>{metricaLabel}</div>
+                  </div>
+                </div>
+                <LineChart data={dadosPorPlayer[p.id]||[]} color={color} />
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ── Perfil ─────────────────────────────────────────
+function PerfilScreen({ player, players, onUpdate, onLogout, theme, setTheme }) {
+  const [nickname, setNickname]     = React.useState(player.nickname||'');
+  const [sexo, setSexo]             = React.useState(player.sexo||'');
+  const [altura, setAltura]         = React.useState(player.altura||'');
+  const [idade, setIdade]           = React.useState(player.idade||'');
+  const [avatarMode, setAvatarMode] = React.useState('emoji');
+  const [selectedEmoji, setSelectedEmoji] = React.useState(player.avatar||'🏃');
+  const [fotoAvatar, setFotoAvatar] = React.useState(null);
+  const [previewAv, setPreviewAv]   = React.useState(player.avatar&&player.avatar.startsWith('http')?player.avatar:null);
+  const [saving, setSaving]         = React.useState(false);
+  const [savedMsg, setSavedMsg]     = React.useState('');
+  const [histMedidas, setHistMedidas] = React.useState([]);
+  const [showCL, setShowCL]         = React.useState(false);
+
+  React.useEffect(()=>{
+    (async()=>{
+      const { data } = await sb.from('medidas').select('data,peso,cintura,sistolica,diastolica').eq('player_id',player.id).order('data',{ascending:false}).limit(10);
+      setHistMedidas(data||[]);
+    })();
+  },[]);
+
+  const handleAvatarFoto = (e) => { const f=e.target.files[0]; if(!f)return; setFotoAvatar(f); setPreviewAv(URL.createObjectURL(f)); };
+
+  const save = async () => {
+    setSaving(true);
+    let avatarVal = avatarMode==='emoji'?selectedEmoji:(previewAv&&!previewAv.startsWith('blob:')?previewAv:null);
+    if (avatarMode==='foto'&&fotoAvatar) {
+      const ext=fotoAvatar.name.split('.').pop()||'jpg';
+      const path=`avatars/${player.id}.${ext}`;
+      const { error: upErr } = await sb.storage.from('provas').upload(path,fotoAvatar,{upsert:true});
+      if (!upErr) { const { data: { publicUrl } } = sb.storage.from('provas').getPublicUrl(path); avatarVal=publicUrl; }
+    }
+    const updates = { nickname:nickname.trim()||null, sexo:sexo||null, altura:altura?parseInt(altura):null, idade:idade?parseInt(idade):null, avatar:avatarVal||selectedEmoji };
+    await sb.from('players').update(updates).eq('id',player.id);
+    onUpdate({...player,...updates});
+    setSaving(false); setSavedMsg('Guardado! ✅');
+    setTimeout(()=>setSavedMsg(''),2500);
+  };
+
+  const toggleTheme = () => {
+    const t=theme==='dark'?'light':'dark';
+    setTheme(t); document.documentElement.setAttribute('data-theme',t); localStorage.setItem('fitwar_theme',t);
+  };
+
+  return (
+    <div className="screen">
+      <div style={{paddingTop:22,paddingBottom:14,display:'flex',alignItems:'center',gap:14}}>
+        <div style={{width:68,height:68,borderRadius:'50%',display:'flex',alignItems:'center',justifyContent:'center',fontSize:'2rem',background:'var(--card)',border:'2px solid var(--border)',overflow:'hidden',flexShrink:0}}>
+          {previewAv&&avatarMode==='foto'
+            ?<img src={previewAv} alt="av" style={{width:'100%',height:'100%',objectFit:'cover'}} />
+            :<span>{selectedEmoji}</span>
+          }
+        </div>
+        <div>
+          <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1.7rem',letterSpacing:1}}>{player.nickname||player.nome}</div>
+          <div className="muted" style={{fontSize:'0.82rem'}}>@{player.nome}</div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'0.95rem',letterSpacing:1,marginBottom:10,color:'var(--muted)'}}>AVATAR</div>
+        <div className="toggle-row">
+          <button className={'toggle-btn'+(avatarMode==='emoji'?' active':'')} onClick={()=>setAvatarMode('emoji')}>Emoji</button>
+          <button className={'toggle-btn'+(avatarMode==='foto'?' active':'')} onClick={()=>setAvatarMode('foto')}>Foto</button>
+        </div>
+        {avatarMode==='emoji'?(
+          <div className="emoji-grid">
+            {AVATARES.map(e=><div key={e} className={'emoji-opt'+(selectedEmoji===e?' selected':'')} onClick={()=>setSelectedEmoji(e)}>{e}</div>)}
+          </div>
+        ):(
+          <div>
+            <input id="av-input" type="file" accept="image/*" onChange={handleAvatarFoto} style={{display:'none'}} />
+            {previewAv?(
+              <div style={{textAlign:'center'}}>
+                <img src={previewAv} style={{width:72,height:72,borderRadius:'50%',objectFit:'cover',border:'2px solid var(--green)'}} />
+                <div style={{marginTop:8}}><button className="btn-sm-danger" onClick={()=>document.getElementById('av-input').click()}>Mudar foto</button></div>
+              </div>
+            ):(
+              <button className="btn btn-ghost" style={{width:'100%'}} onClick={()=>document.getElementById('av-input').click()}>📷 Escolher foto</button>
+            )}
+          </div>
+        )}
+      </div>
+
+      <div className="card">
+        <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'0.95rem',letterSpacing:1,marginBottom:10,color:'var(--muted)'}}>DADOS PESSOAIS</div>
+        <div className="field"><label>Nickname</label><input type="text" placeholder={player.nome} value={nickname} onChange={e=>setNickname(e.target.value)} /></div>
+        <div className="field">
+          <label>Sexo</label>
+          <select value={sexo} onChange={e=>setSexo(e.target.value)}>
+            <option value="">—</option>
+            <option value="M">Masculino</option>
+            <option value="F">Feminino</option>
+            <option value="O">Outro</option>
+          </select>
+        </div>
+        <div style={{display:'flex',gap:10}}>
+          <div className="field" style={{flex:1,marginBottom:0}}><label>Altura (cm)</label><input type="number" inputMode="numeric" placeholder="175" value={altura} onChange={e=>setAltura(e.target.value)} /></div>
+          <div className="field" style={{flex:1,marginBottom:0}}><label>Idade</label><input type="number" inputMode="numeric" placeholder="35" value={idade} onChange={e=>setIdade(e.target.value)} /></div>
+        </div>
+      </div>
+
+      {histMedidas.length>0&&(
+        <div className="card">
+          <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'0.95rem',letterSpacing:1,marginBottom:10,color:'var(--muted)'}}>HISTÓRICO DE MEDIDAS</div>
+          {histMedidas.map((m,i)=>(
+            <div key={i} style={{display:'flex',justifyContent:'space-between',alignItems:'center',padding:'8px 0',borderBottom:i<histMedidas.length-1?'1px solid var(--border)':'none'}}>
+              <span className="muted" style={{fontSize:'0.82rem'}}>{m.data}</span>
+              <div style={{textAlign:'right',fontSize:'0.85rem'}}>
+                {m.peso&&<span style={{fontWeight:700}}>{m.peso} kg </span>}
+                {m.cintura&&<span className="muted">{m.cintura} cm </span>}
+                {m.sistolica&&<span style={{color:'var(--red)',fontWeight:700}}>{m.sistolica}/{m.diastolica||'?'} mmHg</span>}
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      <div className="theme-switch">
+        <div><div style={{fontWeight:700,fontSize:'0.9rem'}}>Tema {theme==='dark'?'Escuro 🌙':'Claro ☀️'}</div><div className="muted" style={{fontSize:'0.78rem'}}>Alterna entre escuro e claro</div></div>
+        <label className="switch"><input type="checkbox" checked={theme==='light'} onChange={toggleTheme} /><span className="slider"/></label>
+      </div>
+
+      <div className="card" style={{cursor:'pointer'}} onClick={()=>setShowCL(!showCL)}>
+        <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div><div style={{fontWeight:700,fontSize:'0.9rem'}}>Versão da app</div><div className="muted" style={{fontSize:'0.78rem'}}>Novidades e atualizações</div></div>
+          <span className="version-badge">v{APP_VERSION}</span>
+        </div>
+        {showCL&&(
+          <div style={{marginTop:14}}>
+            {CHANGELOG.map((c,i)=>(
+              <div key={i} className="changelog-item">
+                <div style={{fontWeight:700,fontSize:'0.85rem'}}>v{c.v} <span style={{color:'var(--muted)',fontWeight:400,fontSize:'0.78rem'}}>— {c.data}</span></div>
+                <div style={{fontSize:'0.82rem',color:'var(--muted)',marginTop:2}}>{c.resumo}</div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {savedMsg&&<div style={{textAlign:'center',color:'var(--green)',fontWeight:700,margin:'8px 0'}}>{savedMsg}</div>}
+      <button className="btn btn-primary" onClick={save} disabled={saving}>{saving?'A guardar...':'Guardar perfil'}</button>
+      <button className="btn btn-ghost" style={{marginTop:8}} onClick={onLogout}>Terminar sessão</button>
+    </div>
+  );
+}
+
+// ── Root App ───────────────────────────────────────
+function App() {
+  const [state, setState]         = React.useState('loading');
+  const [players, setPlayers]     = React.useState([]);
+  const [player, setPlayer]       = React.useState(null);
+  const [screen, setScreen]       = React.useState('dashboard');
+  const [temHoje, setTemHoje]     = React.useState(false);
+  const [alertas, setAlertas]     = React.useState([]);
+  const [showAlertas, setShowAlertas] = React.useState(false);
+  const [theme, setTheme]         = React.useState(()=>localStorage.getItem('fitwar_theme')||'dark');
+
+  React.useEffect(()=>{ document.documentElement.setAttribute('data-theme',theme); },[theme]);
+
+  const checkHoje = async (pid) => { const { data } = await sb.from('entries').select('id').eq('player_id',pid).eq('data',hoje()).maybeSingle(); setTemHoje(!!data); };
+
+  const fetchNotificacoes = async (pid, allPlayers) => {
+    const items = [];
+    const [{ data: al },{ data: msgs }] = await Promise.all([
+      sb.from('alertas').select('*').eq('para_player_id',pid).eq('visto',false),
+      sb.from('mensagens').select('*').eq('para_player_id',pid).eq('visto',false)
+    ]);
+    if (al&&al.length>0) items.push(...al.map(a=>({...a,tipo:'alerta'})));
+    if (msgs&&msgs.length>0) items.push(...msgs.map(m=>({...m,tipo:'mensagem'})));
+    if (allPlayers) {
+      for (const p of allPlayers) {
+        if (p.id===pid) continue;
+        const { data: med } = await sb.from('medidas').select('data').eq('player_id',p.id).not('peso','is',null).order('data',{ascending:false}).limit(1);
+        const dias = diasSemPeso(med&&med.length>0?med[0].data:null);
+        if (dias>=7) items.push({id:`peso_${p.id}`,tipo:'peso',mensagem:`⚖️ ${p.nickname||p.nome} não regista o peso há ${dias===999?'muito tempo':`${dias} dias`}.`});
+      }
+    }
+    if (items.length>0) { setAlertas(items); setShowAlertas(true); }
+  };
+
+  React.useEffect(()=>{
+    (async()=>{
+      const { data, error } = await sb.from('players').select('*').order('created_at');
+      if (error||!data||data.length===0) { setState('setup'); return; }
+      setPlayers(data);
+      const saved = localStorage.getItem('fitwar_pid');
+      if (saved) {
+        const p = data.find(x=>x.id===saved);
+        if (p) { setPlayer(p); await checkHoje(p.id); await fetchNotificacoes(p.id,data); setState('app'); return; }
+      }
+      setState('login');
+    })();
+  },[]);
+
+  const handleLogin = async (p) => {
+    setPlayer(p); localStorage.setItem('fitwar_pid',p.id);
+    await checkHoje(p.id);
+    const { data: allP } = await sb.from('players').select('*');
+    await fetchNotificacoes(p.id,allP);
+    setState('app');
+  };
+
+  const dismissAlertas = async () => {
+    setShowAlertas(false);
+    const pid = player?player.id:(alertas[0]?alertas[0].para_player_id:null);
+    if (pid) {
+      await sb.from('alertas').update({visto:true}).eq('para_player_id',pid).eq('visto',false);
+      await sb.from('mensagens').update({visto:true}).eq('para_player_id',pid).eq('visto',false);
+    }
+    setAlertas([]);
+  };
+
+  const handleLogout = () => { localStorage.removeItem('fitwar_pid'); setPlayer(null); setAlertas([]); setState('login'); };
+  const handleSetupComplete = async () => { const { data } = await sb.from('players').select('*').order('created_at'); setPlayers(data||[]); setState('login'); };
+  const handleEntrySuccess = () => { setTemHoje(true); setScreen('dashboard'); };
+  const handlePlayerUpdate = (updated) => { setPlayer(updated); setPlayers(prev=>prev.map(p=>p.id===updated.id?updated:p)); };
+
+  if (state==='loading') return <LoadingScreen />;
+  if (state==='setup')   return <SetupScreen onComplete={handleSetupComplete} />;
+  if (state==='login')   return <LoginScreen players={players} onLogin={handleLogin} />;
+
+  return (
+    <div>
+      {showAlertas&&(
+        <div className="alert-overlay">
+          <div className="alert-box">
+            <div style={{fontSize:'1.5rem',marginBottom:6}}>👋</div>
+            <div style={{fontFamily:'Bebas Neue,sans-serif',fontSize:'1.3rem',marginBottom:14,letterSpacing:1}}>NOVIDADES</div>
+            {alertas.map((a,i)=>(
+              <div key={i} className={a.tipo==='alerta'?'alert-item-a':a.tipo==='mensagem'?'alert-item-m':'alert-item-p'}>{a.mensagem}</div>
+            ))}
+            <button className="btn btn-primary" style={{marginTop:10}} onClick={dismissAlertas}>OK, percebi</button>
+          </div>
+        </div>
+      )}
+      {screen==='dashboard'   && <Dashboard player={player} players={players} setScreen={setScreen} />}
+      {screen==='entry'       && <EntryForm player={player} onSuccess={handleEntrySuccess} />}
+      {screen==='progresso'   && <ProgressoScreen players={players} currentPlayer={player} />}
+      {screen==='leaderboard' && <LeaderboardFull players={players} currentPlayer={player} />}
+      {screen==='perfil'      && <PerfilScreen player={player} players={players} onUpdate={handlePlayerUpdate} onLogout={handleLogout} theme={theme} setTheme={setTheme} />}
+      <BottomNav screen={screen} setScreen={setScreen} temHoje={temHoje} hasAlerts={alertas.length>0&&!showAlertas} />
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
